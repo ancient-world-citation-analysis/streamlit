@@ -7,4 +7,3 @@ poppler-utils
 pytesseract
 httpx-oauth
 pillow
-python-poppler
