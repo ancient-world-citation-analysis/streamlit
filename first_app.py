@@ -22,6 +22,7 @@ for uploaded_file in uploaded_files:
 
 def populate_ocr(files):
     page_ids = []
+    #list of all documents
     page_texts = []
     for open_file in files:
         images = convert_from_bytes(open_file.read())
@@ -32,6 +33,7 @@ def populate_ocr(files):
             images[i].save('page' + str(image_counter) + '.jpg', 'JPEG')
             image_counter += 1
         filelimit = image_counter - 1
+        #list of each document
         individual = []
         # read the image, and turn into csv using ocr
         for i in range(1, image_counter):
