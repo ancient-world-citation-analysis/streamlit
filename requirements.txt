@@ -1,9 +1,7 @@
 streamlit
-google-api-python-client
-oauth2client
-httplib2
 pdf2image
 poppler-utils
 pytesseract
-httpx-oauth
 pillow
+PyPDF3
+watchdog

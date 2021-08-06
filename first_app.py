@@ -7,9 +7,16 @@ import base64
 import os
 import pytesseract
 import pandas as pd
-from pdf2image import convert_from_bytes, convert_from_path
+from pdf2image import *
 import PIL
 import re
+from PyPDF3 import PdfFileWriter, PdfFileReader
+import io
+#Import the garbage collection module
+import gc
+#Enable garbage collection
+gc.enable()
+#Clean up the memory from unused objects
 
 # Create a title
 st.title('PDF2CSV')
@@ -25,13 +32,22 @@ def populate_ocr(files):
     #list of all documents
     page_texts = []
     for open_file in files:
-        images = convert_from_bytes(open_file.read())
-        image_counter = 1
         page_ids.append(open_file.name)
-        #save the image from pdf
-        for i in range(len(images)):
-            images[i].save('page' + str(image_counter) + '.jpg', 'JPEG')
-            image_counter += 1
+        inputpdf = PdfFileReader(io.BytesIO(open_file.getvalue()))
+        maxPages = inputpdf.numPages
+        image_counter = 1
+        for page in range(1, maxPages, 10):
+            try:
+                images = convert_from_bytes(open_file.getvalue(), first_page=page, last_page=min(page + 10 - 1, maxPages))
+                for image in images:
+                    image.save('page' + str(image_counter) + '.jpg', 'jpeg')
+                    image_counter += 1
+            except exceptions.PDFPageCountError as error:
+                st.write("Error:")
+                st.write(page)
+                continue
+            
+
         filelimit = image_counter - 1
         #list of each document
         individual = []
@@ -39,7 +55,7 @@ def populate_ocr(files):
         for i in range(1, image_counter):
             filename = "page" + str(i) + ".jpg"
             text = pytesseract.image_to_string(PIL.Image.open(filename))
-            text.replace("-\n", "")
+            text.replace("\n'", " ")
             individual += [text]
             if os.path.isfile(filename):
                 os.remove(filename)
@@ -56,6 +72,8 @@ def populate_ocr(files):
 st.header("File Download - A Workaround")
 
 csv = populate_ocr(uploaded_files)
+
+gc.collect()
 
 b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
 href = f'<a href="data:file/csv;base64,{b64}">Download CSV File</a> (right-click and save as &lt;some_name&gt;.csv)'
