@@ -5,3 +5,5 @@ pytesseract
 pillow
 PyPDF3
 watchdog
+torch
+transformers==2.8.0
