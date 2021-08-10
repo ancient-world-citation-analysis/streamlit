@@ -33,11 +33,21 @@ def app():
         with st.form("Paste Here then Click the submit button"):
             text = st.text_area("Paste the text you want summarized here, then click the submit button", height=250)
             tokenized_text = preprocess(text)
+
+            selection = st.selectbox("Select the Length of Output", ["Short", "Medium", "Long"])
+            
+            if selection == "Short":
+                min_length, max_length = 30, 100
+            elif selection == "Medium":
+                min_length, max_length = 90, 300
+            else:
+                min_length, max_length = 150, 600
+
             summary_ids = model.generate(tokenized_text,
                                     num_beams=4,
                                     no_repeat_ngram_size=2,
-                                    min_length=30,
-                                    max_length=100,
+                                    min_length=min_length,
+                                    max_length=max_length,
                                     early_stopping=True)
             output = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
             submitted = st.form_submit_button("Submit")
