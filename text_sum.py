@@ -1,5 +1,6 @@
 import torch
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
+#from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import streamlit as st
 
 @st.cache
@@ -14,12 +15,16 @@ def get_tokenizer():
 tokenizer = get_tokenizer()
 model = get_model()
 
-def preprocess(text):
-    preprocess_text = text.strip().replace("\n","")
-    t5_prepared_Text = "summarize: "+ preprocess_text
-    print ("original text preprocessed: \n", preprocess_text)
-    tokenized_text = tokenizer.encode(t5_prepared_Text, return_tensors="pt")
-    return tokenized_text
+def preprocess(texts):
+    preprocess_texts = texts.strip().replace("\n", "")
+    texts1 = [preprocess_texts[n*512: (n+1)*512] for n in range(len(preprocess_texts) // 512)]
+    tokens=[]
+    for text in texts1:
+        t5_prepared_Text = "summarize: "+ text
+        print ("original text preprocessed: \n", text)
+        tokenized_text = tokenizer.encode(t5_prepared_Text, return_tensors="pt")
+        tokens.append(tokenized_text)
+    return tokens
 
 def app():
     st.title("Text Summarization using Machine Learning and BERT")
@@ -32,26 +37,30 @@ def app():
         st.subheader("Original")
         with st.form("Paste Here then Click the submit button"):
             text = st.text_area("Paste the text you want summarized here, then click the submit button", height=250)
-            tokenized_text = preprocess(text)
+            
+            tokenized_texts = preprocess(text)
 
             selection = st.selectbox("Select the Length of Output", ["Short", "Medium", "Long"])
             
             if selection == "Short":
-                min_length, max_length = 30, 100
+                min_length, max_length = 10, 20
             elif selection == "Medium":
-                min_length, max_length = 90, 300
-            else:
-                min_length, max_length = 150, 600
-
-            summary_ids = model.generate(tokenized_text,
+                min_length, max_length = 20, 35
+            elif selection == "Long":
+                min_length, max_length = 35, 100
+            
+            outputs = ""
+            for text in tokenized_texts:
+                summary_ids = model.generate(text,
                                     num_beams=4,
                                     no_repeat_ngram_size=2,
                                     min_length=min_length,
                                     max_length=max_length,
                                     early_stopping=True)
-            output = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+                output = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+                outputs += output
             submitted = st.form_submit_button("Submit")
     with col2:
         st.subheader('Summarized')
         if submitted:
-            st.write(output)
+            st.write(outputs)
