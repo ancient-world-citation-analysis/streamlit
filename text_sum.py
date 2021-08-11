@@ -25,7 +25,7 @@ model = get_model()
 p_tokenizer = get_p_tokenizer()
 p_model = get_p_model()
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def preprocess(texts):
     preprocess_texts = texts.strip().replace("\n", "")
     texts1 = [preprocess_texts[n*512: (n+1)*512] for n in range(len(preprocess_texts) // 512)]
@@ -37,30 +37,36 @@ def preprocess(texts):
         tokens.append(tokenized_text)
     return tokens
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def paraphrase(texts):
+    """
+    texts1 = [texts[n * 512 : (n + 1) * 512] for n in range(len(texts) // 512)]
+    tokens = []
+    lines = ""
+    
+    for texts2 in texts1:
+    """
+    texts2 =  "paraphrase: " + texts
 
-    texts =  "paraphrase: " + texts
-
-    encoding = tokenizer.encode_plus(texts,padding='max_length', return_tensors="pt")
+    encoding = p_tokenizer.encode_plus(texts2,padding='max_length', return_tensors="pt")
     input_ids, attention_masks = encoding["input_ids"], encoding["attention_mask"]
 
-    outputs = model.generate(
-    input_ids=input_ids, attention_mask=attention_masks,
-    max_length=10000,
-    do_sample=True,
-    top_k=120,
-    top_p=0.95,
-    early_stopping=True,
-    num_return_sequences=5
-    )
+    outputs = p_model.generate(
+            input_ids=input_ids, attention_mask=attention_masks,
+            max_length=10000,
+            do_sample=True,
+            top_k=120,
+            top_p=0.95,
+            early_stopping=True,
+            num_return_sequences=1
+        )
     lines = ""
-    for output in outputs:
-        line = tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+    for output in outputs: 
+        line = p_tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
         lines += line
     return lines
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def get_summarization(tokenized_texts, min_length, max_length):
     outputs = ""
     for text in tokenized_texts:
@@ -90,12 +96,12 @@ def app():
         st.subheader("Original")
         with st.form("Paste Here then Click the submit button"):
 
-            text = st.text_area("Paste the text you want summarized here, then click the submit button", height=250)
+            text = st.text_area("Paste the text you want summarized or paraphrased here, then click the submit button", height=250)
 
             # Choosing whether to paraphrase or summarize
             sorp = st.selectbox("Multiselect Paraphrase or Summarize", options=["Summarization and Paraphrasing", "Summarization Only", "Paraphrasing Only"])
             
-
+            output = ""
             if sorp == "Paraphrasing Only":
                 output = paraphrase(text)
                 
@@ -110,11 +116,10 @@ def app():
                     min_length, max_length = 35, 100
             
                 # Get output of summarization
-                tokenized_texts = preprocess(text)
-                outputs = get_summarization(tokenized_texts, min_length, max_length)
+                tokenized_texts1 = preprocess(text).copy()
+                outputs = get_summarization(tokenized_texts1, min_length, max_length)
 
-                p = paraphrase(outputs)
-                output = p
+                output = paraphrase(outputs)
                 
             elif sorp == "Summarization Only":
                 # Choosing the length of summarization
@@ -127,7 +132,7 @@ def app():
                     min_length, max_length = 35, 100
             
                 # Get output of summarization
-                tokenized_texts = preprocess(text)
+                tokenized_texts = preprocess(text).copy()
                 outputs = get_summarization(tokenized_texts, min_length, max_length)
                 output = outputs
                 
@@ -139,6 +144,6 @@ def app():
             
     
     with col2:
-        st.subheader('Summarized')
+        st.subheader('Output')
         if submitted:
             st.write(output)
