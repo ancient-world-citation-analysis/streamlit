@@ -55,4 +55,3 @@ def app():
         st.subheader('Summarized')
         if submitted:
             st.write(output)
-
