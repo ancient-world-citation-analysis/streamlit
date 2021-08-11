@@ -6,4 +6,4 @@ pillow
 PyPDF3
 watchdog
 torch
-transformers==2.8.0
+transformers==3.1.0
