@@ -13,11 +13,11 @@ def get_tokenizer():
     return tokenizer
 @st.cache
 def get_p_model():
-    model = AutoModelForSeq2SeqLM.from_pretrained("Vamsi/T5_Paraphrase_Paws")
+    model = AutoModelForSeq2SeqLM.from_pretrained('Vamsi/T5_Paraphrase_Paws')
     return model
 @st.cache
 def get_p_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("Vamsi/T5_Paraphrase_Paws")
+    tokenizer = AutoTokenizer.from_pretrained('Vamsi/T5_Paraphrase_Paws')
     return tokenizer
 
 tokenizer = get_tokenizer()
@@ -61,9 +61,8 @@ def paraphrase(texts):
             num_return_sequences=1
         )
     lines = ""
-    for output in outputs: 
-        line = p_tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-        lines += line
+    line = p_tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
+    lines += line
     return lines
 
 @st.cache(allow_output_mutation=True)
