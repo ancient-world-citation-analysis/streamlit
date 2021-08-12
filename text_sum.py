@@ -79,6 +79,7 @@ def get_summarization(tokenized_texts, min_length, max_length):
                                     max_length=max_length,
                                     early_stopping=True)
         output = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        output += "\n\n"
         outputs += output
     return outputs
 
