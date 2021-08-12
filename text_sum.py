@@ -65,7 +65,6 @@ def paraphrase(texts):
         line += "\n\n"
         lines += line
     end = time.time()
-    st.write("Runtime: ",end-start)
     return lines
 
 @st.cache(allow_output_mutation=True)
