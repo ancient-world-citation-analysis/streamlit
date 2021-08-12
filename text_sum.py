@@ -2,6 +2,7 @@ import torch
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import streamlit as st
+import time
 
 @st.cache
 def get_model():
@@ -39,19 +40,18 @@ def preprocess(texts):
 
 @st.cache(allow_output_mutation=True)
 def paraphrase(texts):
-    """
-    texts1 = [texts[n * 512 : (n + 1) * 512] for n in range(len(texts) // 512)]
-    tokens = []
+    start = time.time()
+    texts1 = texts.split("\n")
+    #texts1 = [texts[n * 512 : (n + 1) * 512] for n in range(len(texts) // 512)]
     lines = ""
-    
     for texts2 in texts1:
-    """
-    texts2 =  "paraphrase: " + texts
+        
+        texts2 =  "paraphrase: " + texts2
 
-    encoding = p_tokenizer.encode_plus(texts2,padding='max_length', return_tensors="pt")
-    input_ids, attention_masks = encoding["input_ids"], encoding["attention_mask"]
+        encoding = p_tokenizer.encode_plus(texts2,padding='max_length', return_tensors="pt")
+        input_ids, attention_masks = encoding["input_ids"], encoding["attention_mask"]
 
-    outputs = p_model.generate(
+        outputs = p_model.generate(
             input_ids=input_ids, attention_mask=attention_masks,
             max_length=10000,
             do_sample=True,
@@ -60,9 +60,12 @@ def paraphrase(texts):
             early_stopping=True,
             num_return_sequences=1
         )
-    lines = ""
-    line = p_tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
-    lines += line
+    
+        line = p_tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
+        line += "\n\n"
+        lines += line
+    end = time.time()
+    st.write("Runtime: ",end-start)
     return lines
 
 @st.cache(allow_output_mutation=True)
