@@ -33,7 +33,7 @@ def preprocess(texts):
     tokens=[]
     for text in texts1:
         t5_prepared_Text = "summarize: "+ text
-        print ("original text preprocessed: \n", text)
+        #print ("original text preprocessed: \n", text)
         tokenized_text = tokenizer.encode(t5_prepared_Text, return_tensors="pt")
         tokens.append(tokenized_text)
     return tokens
